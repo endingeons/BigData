@@ -133,23 +133,26 @@ class SpotifyTrackAnalyzer:
               Aggregates number of top songs by album, timeline of artist's top songs,
               and a Violin Plot of the artists' top 10 tracks by popularity
         """
-        print('Generating report....')
+        print('\nGenerating report....\n============================================\n')
         # For each artist's top 10 songs, find which albums they are from
         print(df.groupby('artist')['album'].value_counts())
 
         # Convert release date to date time object
         df['release_date'] = pd.to_datetime(df['release_date'], format='%Y-%m-%d')
         # Generate figure of artist's song's popularity by release year and month
+        plt.figure()
         sns.scatterplot(data=df, x='release_date', y='artist', hue='popularity').set(
             title='Popularity of Pop Artist''s Songs by Release Date',
             xlabel='Release Date', ylabel='Artist')
         plt.tight_layout()
+        plt.savefig('artist_scatter_by_release_date.png')
 
         # What is the range of Spotify Popularity of each artist's top 10 songs
+        plt.figure()
         sns.violinplot(data=df, x='artist', y='popularity', hue='artist').set(
             title='Comparing Popularity of Pop Artist''s Top 10 Songs',
             xlabel='Artist', ylabel='Popularity')
-
+        plt.savefig('artist_popularity_violin_plot.png')
 
 class RedisConnector:
     """ Connect to Redis Cloud, insert, and read data """
@@ -179,9 +182,9 @@ class RedisConnector:
             spotify_dict: Spotify Track Dictionary as returned by
                           SpotifyTrackAnalyzer.get_artists_top_songs
         """
-        print('Setting Redis keys')
+        print('\tSetting Redis keys')
+        print('\tAdding ' + str(len(spotify_dict['track_id'])) + ' tracks to Redis')
         for i in range(len(spotify_dict['track_id'])):
-            print('spotify:track:' + str(spotify_dict['track_id'][i]))
             self.r.json().set('spotify:track:' + str(spotify_dict['track_id'][i]),
                               '.',
                               json.dumps(spotify_dict['track_data'][i]))
@@ -212,7 +215,7 @@ def main():
     redis.set_redis_keys(spotify.get_artists_top_songs('Beyonce'))
     redis.set_redis_keys(spotify.get_artists_top_songs('Taylor Swift'))
     redis.set_redis_keys(spotify.get_artists_top_songs('Cher'))
-    redis.set_redis_keys(spotify.get_artists_top_songs('Vaness Carlton'))
+    redis.set_redis_keys(spotify.get_artists_top_songs('Vanessa Carlton'))
 
     # Read from Redis database
     data = redis.get_redis_keys()
