@@ -169,6 +169,9 @@ class RedisConnector:
             port=port,
             password=password)
 
+        # Clear database before adding new data
+        self.r.flushall()
+
     def set_redis_keys(self, spotify_dict):
         """ Populate Redis Database with data from Spotify API
 
